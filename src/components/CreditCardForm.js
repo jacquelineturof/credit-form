@@ -1,90 +1,94 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
+
+import { 
+    formatInput, 
+    validateExpirationDate, 
+    validateInput,
+    checkSupported,
+    checkLuhn
+} from '../util/creditCardValidation'
 
 import classes from './CreditCardForm.module.css'
 
-const acceptedCreditCards = {
-    visa: /^4[0-9]{12}(?:[0-9]{3})?$/,
-    mastercard: /^5[1-5][0-9]{14}$|^2(?:2(?:2[1-9]|[3-9][0-9])|[3-6][0-9][0-9]|7(?:[01][0-9]|20))[0-9]{12}$/,
-    amex: /^3[47][0-9]{13}$/
-}
-
 const CreditCardForm = () => {
+    const currentYear = new Date().getFullYear()
+    const [ expirationMonths, setExpirationMonths ] = useState([])
+    const [ expirationYears, setExpirationYears ] = useState([])
+
     const [ creditCardNumber, setCreditCardNumber ] = useState('')
+    const [ creditCardName, setCreditCardName ] = useState('')
+    const [ expirationMonth, setExpirationMonth ] = useState('01')
+    const [ expirationYear, setExpirationYear ] = useState(currentYear.toString())
+    const [ cvv, setCvv ] = useState('')
+
+    const getExpirationDates = useCallback(() => {
+        const months = []
+        const years = []
+        
+        for (let i = 1; i < 13; i++) {
+            if (i < 10) {
+                months.push('0' + i)
+            } else {
+                months.push(i)
+            }
+        }
+        
+        // Most cards expire in 2 - 3 years, will give users a decade
+        // of years for input
+        for (let i = currentYear; i < currentYear + 10; i++) {
+            years.push(i)
+        }
+
+        setExpirationMonths(months)
+        setExpirationYears(years)
+    }, [ currentYear ])
+
+    useEffect(() => {
+        getExpirationDates()
+    }, [ getExpirationDates ])
 
     /*
         Input change handler. Will validate input and then
-        setState
+        setState. Will check if current input is less than creditCardNumber,
+        if it is, we are in delete mode, no need to validate
         @param inputName { string } the name of the input field.
         e.g. number, name, month, year, cvv
     */
     const onInputChangeHandler = (e, inputName) => {
-        if (inputName === 'number') {
-            const validInput = validateInput(e.target.value, inputName)
-            setCreditCardNumber(validInput)
-        }
-    }
-
-    /*
-        Validates a string based on regex patterns and if an input (not a select) will
-        return an updated valid string
-        @param inputName { string } the name of the input field.
-        e.g. number, name, month, year, cvv
-    */
-    const validateInput = (inputValue, inputName) => {
-        let value
+        const currentInput = e.target.value
         
         if (inputName === 'number') {
-            console.log('validating input...')
-            // remove all non digit characters
-            value = inputValue.replace(/\D/g, '')
-        }
+            try {
+                // user is deleting input, don't validate or format.
+                if (currentInput.length < creditCardNumber.length) {
+                    setCreditCardNumber(currentInput)
+                    return
+                }
 
-        return value
+                const validInput = validateInput(currentInput, inputName, setCreditCardNumber)
+                const formattedInput = formatInput(validInput)
+                setCreditCardNumber(formattedInput)
+            } catch (e) {
+                console.log(e)
+            }
+        } else if (inputName === 'name') {
+            const validInput = validateInput(currentInput, inputName)
+            setCreditCardName(validInput)
+        } else {
+            // CVV
+            console.log('cvv changed')
+            console.log(currentInput)
+            console.log(inputName)
+            const validInput = validateInput(currentInput, inputName, null, creditCardNumber)
+            setCvv(validInput)
+        }
     }
 
     const onSubmitHandler = e => {
         e.preventDefault()
         console.log(checkLuhn(creditCardNumber))
         console.log(checkSupported(creditCardNumber))
-    }
-
-    /*
-        check luhn algo to validate a credit card number.
-    */
-    const checkLuhn = value => {
-        let sum = 0
-        let shouldDouble = false
-        // loop through values starting at the rightmost side
-        for (let i = value.length - 1; i >= 0; i--) {
-            let digit = parseInt(value.charAt(i))
-    
-            if (shouldDouble) {
-                if ((digit *= 2) > 9) digit -= 9
-            }
-
-            sum += digit
-            shouldDouble = !shouldDouble
-        }
-
-        return (sum % 10) === 0
-    }
-
-    /*
-        check user input against the regex for our supported credit card types.
-        returns boolean -> true if user input is a valid accepted card type
-    */
-    const checkSupported = value => {
-        let accepted = false
-
-        // loop through the keys (visa, mastercard, amex, etc.)
-        Object.keys(acceptedCreditCards).forEach(function(key) {
-            let regex = acceptedCreditCards[key]
-            if (regex.test(value)) {
-                accepted = true
-            }
-        })
-  
-        return accepted
+        console.log(validateExpirationDate(expirationMonth, expirationYear))
     }
 
     return (
@@ -97,6 +101,53 @@ const CreditCardForm = () => {
                     value = { creditCardNumber } 
                     onChange = { e => onInputChangeHandler(e, "number") }/>
             </div>
+            <div className = { classes.FormGroup }>
+                <label className = { classes.FormLabel }>Card Holder Name</label>
+                <input 
+                    className = { classes.Input } 
+                    type = "text" 
+                    value = { creditCardName } 
+                    onChange = { e => onInputChangeHandler(e, "name") }/>
+            </div>
+            <div className = { classes.FormGroupRow }>
+                <div className = { classes.ExpirationDateContainer }>
+                    <label className = { classes.FormLabel }>Expiration Date</label>
+                    <div className = { classes.ExpirationDate }>
+                        <select 
+                            className = { classes.Select } 
+                            value = { expirationMonth }
+                            onChange = { e => setExpirationMonth(e.target.value) }>
+                            { expirationMonths.map(month => (
+                                <option key = { month } value = { month }>
+                                    { month }
+                                </option>
+                            ))}
+                        </select>
+                        <select 
+                            className = { classes.Select }
+                            value = { expirationYear }
+                            onChange = { e => setExpirationYear(e.target.value) }>
+                            { expirationYears.map(year => (
+                                <option key = { year } value = {year }>
+                                    { year }
+                                </option>
+                            ))}
+                    </select>
+                    </div>
+                </div>
+
+                <div className = { classes.CVV }>
+                <label className = { classes.FormLabel }>CVV</label>
+                <input 
+                    className = { classes.Input } 
+                    type = "text" 
+                    value = { cvv } 
+                    onChange = { e => onInputChangeHandler(e, "cvv") }/>
+                </div>
+            </div>
+            <button className = { classes.Submit }>
+                Submit
+            </button>
         </form>
     )
 }

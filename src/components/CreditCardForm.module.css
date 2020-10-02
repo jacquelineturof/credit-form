@@ -20,13 +20,16 @@
     margin-top: 5rem;
 }
 
-.Input {
+.Input,
+.Select {
     height: 30px;
     border: 1px solid #ccc;
     border-radius: .6rem;
     margin-top: .5rem;
 }
 
+.Select:focus,
+.Select:active,
 .Input:focus,
 .Input:active {
     outline: none;
@@ -35,8 +38,50 @@
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 
+.Select {
+    width: 90px;
+}
+
 .FormLabel {
     margin-left: .2rem;
     font-family: 'Lato', sans-serif;
     font-size: .9rem;
+}
+
+.FormGroupRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+}
+
+.ExpirationDateContainer {
+    width: 50%;
+}
+
+.ExpirationDate {
+    display: flex;
+    justify-content: space-between;
+}
+
+.Submit {
+    outline: none;
+    border: none;
+    cursor: pointer;
+    margin-top: 4rem;
+    width: 90%;
+    height: 50px;
+    border-radius: .6rem;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    background-color: #002642;
+    font-family: 'Lato', sans-serif;
+    color: white;
+    text-transform: uppercase;
+}
+
+.CVV {
+    width: 30%;
+    
+    display: flex;
+    flex-direction: column;
 }
