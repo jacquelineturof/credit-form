@@ -1,0 +1,34 @@
+.Container {
+    box-shadow: 0 30px 60px 0 rgba(90, 116, 148, 0.4);
+    border-radius: .6rem;
+    height: 60%;
+    width: 50%;
+    background-color: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ErrorContainer {
+    height: 100%;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.BackButton {
+    cursor: pointer;
+    outline: none;
+    border: none;
+    background-color: #002642;
+    font-family: 'Lato', sans-serif;
+    color: white;
+    text-transform: uppercase;
+    height: 40px;
+    width: 100px;
+    border-radius: .6rem;
+}

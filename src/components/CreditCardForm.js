@@ -5,12 +5,15 @@ import {
     validateExpirationDate, 
     validateInput,
     checkSupported,
-    checkLuhn
+    checkLuhn,
+    getCardType
 } from '../util/creditCardValidation'
+
+import CreditCard from './CreditCard'
 
 import classes from './CreditCardForm.module.css'
 
-const CreditCardForm = () => {
+const CreditCardForm = ({ setSuccess, setError }) => {
     const currentYear = new Date().getFullYear()
     const [ expirationMonths, setExpirationMonths ] = useState([])
     const [ expirationYears, setExpirationYears ] = useState([])
@@ -89,10 +92,24 @@ const CreditCardForm = () => {
         console.log(checkLuhn(creditCardNumber))
         console.log(checkSupported(creditCardNumber))
         console.log(validateExpirationDate(expirationMonth, expirationYear))
+
+        if (checkLuhn(creditCardNumber) && checkSupported(creditCardNumber) 
+            && validateExpirationDate(expirationMonth, expirationYear)) {
+            setSuccess(true)
+        } else {
+            setError('Bad account information.')
+        }
     }
 
     return (
         <form className = { classes.Form } onSubmit = { onSubmitHandler }>
+            <CreditCard 
+                type = { getCardType(creditCardNumber) } 
+                number = { creditCardNumber }
+                name = { creditCardName }
+                expirationDate = { expirationMonth + "/" + expirationYear }
+                cvv = { cvv }  />
+            <div className = { classes.InputsContainer }>
             <div className = { classes.FormGroup }>
                 <label className = { classes.FormLabel }>Card Number</label>
                 <input 
@@ -135,6 +152,7 @@ const CreditCardForm = () => {
                     </select>
                     </div>
                 </div>
+                
 
                 <div className = { classes.CVV }>
                 <label className = { classes.FormLabel }>CVV</label>
@@ -144,6 +162,7 @@ const CreditCardForm = () => {
                     value = { cvv } 
                     onChange = { e => onInputChangeHandler(e, "cvv") }/>
                 </div>
+            </div>
             </div>
             <button className = { classes.Submit }>
                 Submit

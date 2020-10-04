@@ -10,7 +10,7 @@ const acceptedCreditCards = {
     amex, mastercard, or undefined if it is
     not one of the 3 listed card types
 */
-const getCardType = value => {
+export const getCardType = value => {
     if (value.charAt(0) === '3') {
         return 'amex'
     } else if (value.charAt(0) === '4') {
@@ -83,7 +83,8 @@ export const validateExpirationDate = (expirationMonth, expirationYear) => {
         check user input against the regex for our supported credit card types.
         returns boolean -> true if user input is a valid accepted card type
 */
-export const checkSupported = value => {
+export const checkSupported = creditCardNumber => {
+    const value = creditCardNumber.replace(/\s/g, '')
     let accepted = false
 
     // loop through the keys (visa, mastercard, amex, etc.)
@@ -100,7 +101,8 @@ export const checkSupported = value => {
 /*
      check luhn algo to validate a credit card number.
 */
-export const checkLuhn = value => {
+export const checkLuhn = creditCardNumber => {
+    const value = creditCardNumber.replace(/\s/g, '')
     let sum = 0
     let shouldDouble = false
     // loop through values starting at the rightmost side
@@ -146,7 +148,7 @@ export const validateInput = (
         // cardType
         value = checkMaxInput(value)
     } else if (inputName === 'name') {
-        value = inputValue.replace(/[^a-zA-Z]/gi, '')
+        value = inputValue.replace(/[^a-zA-Z\s]/gi, '')
     } else {
         // CVV
         const AMEX_CVV_LENGTH = 4
